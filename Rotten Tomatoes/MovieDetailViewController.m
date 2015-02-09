@@ -67,9 +67,16 @@
     
     cell.mpaaRating.text = self.movieData[@"mpaa_rating"];
     NSDictionary *rating = self.movieData[@"ratings"];
-    cell.criticRating.text = [NSString stringWithFormat:@"%@ (%@)", rating[@"critics_rating"], rating[@"critics_score"]];
-    cell.audiencRating.text = [NSString stringWithFormat:@"%@ (%@)", rating[@"audience_rating"], rating[@"audience_score"]];
-    
+    if (rating[@"critics_rating"]) {
+        cell.criticRating.text = [NSString stringWithFormat:@"%@ (%@)", rating[@"critics_rating"], rating[@"critics_score"]];
+    } else {
+        cell.criticRating.text = @"n/a";
+    }
+    if (rating[@"audience_rating"]) {
+        cell.audiencRating.text = [NSString stringWithFormat:@"%@ (%@)", rating[@"audience_rating"], rating[@"audience_score"]];
+    } else {
+        cell.audiencRating.text = @"n/a";
+    }
     cell.synopsisLabel.text = self.movieData[@"synopsis"];
     [cell.synopsisLabel sizeToFit];
     self.tableView.rowHeight = cell.synopsisLabel.bounds.size.height + 16 + 58;
