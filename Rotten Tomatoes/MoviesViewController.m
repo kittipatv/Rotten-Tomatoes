@@ -140,6 +140,9 @@
 */
 
 - (void)tabBar:(UITabBar *)tabBar didSelectItem:(UITabBarItem *)item {
+    if (self.searchBar.text.length > 0) {
+        self.previouslySelectedBarItem = nil;
+    }
     self.searchBar.text = @"";
     if (self.previouslySelectedBarItem == item) {
         NSLog(@"Same");

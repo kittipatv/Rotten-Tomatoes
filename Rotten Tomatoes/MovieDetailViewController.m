@@ -61,9 +61,18 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     MovieDetailTableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"MovieDetailCell" forIndexPath:indexPath];
+    
+    cell.titleLabel.text = [NSString stringWithFormat:@"%@ (%@)",
+                            self.movieData[@"title"], self.movieData[@"year"]];
+    
+    cell.mpaaRating.text = self.movieData[@"mpaa_rating"];
+    NSDictionary *rating = self.movieData[@"ratings"];
+    cell.criticRating.text = [NSString stringWithFormat:@"%@ (%@)", rating[@"critics_rating"], rating[@"critics_score"]];
+    cell.audiencRating.text = [NSString stringWithFormat:@"%@ (%@)", rating[@"audience_rating"], rating[@"audience_score"]];
+    
     cell.synopsisLabel.text = self.movieData[@"synopsis"];
     [cell.synopsisLabel sizeToFit];
-    self.tableView.rowHeight = cell.synopsisLabel.bounds.size.height + 16;
+    self.tableView.rowHeight = cell.synopsisLabel.bounds.size.height + 16 + 58;
     return cell;
 }
 
