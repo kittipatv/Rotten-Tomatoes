@@ -15,13 +15,19 @@
 #import "MovieTableViewCell.h"
 #import "MovieDetailViewController.h"
 
-@interface MoviesViewController () <UITableViewDelegate, UITableViewDataSource>
+@interface MoviesViewController () <UITableViewDelegate, UITableViewDataSource, UITabBarDelegate>
 
+@property (weak, nonatomic) IBOutlet UITabBar *tabBar;
+@property (weak, nonatomic) IBOutlet UITabBarItem *boxOfficeBarItem;
+@property (weak, nonatomic) IBOutlet UITabBarItem *dvdBarItem;
 @property (weak, nonatomic) IBOutlet UITableView *moviesTableView;
+
+@property (weak, nonatomic) UITabBarItem *previouslySelectedBarItem;
 
 @property (strong, nonatomic) UIView *noConnectionView;
 @property (strong, nonatomic) UIRefreshControl *refreshControl;
 @property (strong, nonatomic) NSArray *movies;
+@property (strong, nonatomic) NSString *endpoint;
 
 @end
 
@@ -34,6 +40,8 @@
     
     self.moviesTableView.delegate = self;
     self.moviesTableView.dataSource = self;
+    
+    [self setBoxOfficEndpoint];
     
     [SVProgressHUD showWithStatus:@"Loading movie list"];
     [self loadMovieList];
@@ -63,6 +71,19 @@
     }];
     
     self.navigationItem.backBarButtonItem = [[UIBarButtonItem alloc] initWithTitle:@"Movies" style:UIBarButtonItemStylePlain target:nil action:nil];
+    
+    self.tabBar.delegate = self;
+    
+    self.previouslySelectedBarItem = self.boxOfficeBarItem;
+    self.tabBar.selectedItem = self.boxOfficeBarItem;
+}
+
+- (void)setBoxOfficEndpoint {
+    self.endpoint = @"http://api.rottentomatoes.com/api/public/v1.0/lists/movies/box_office.json";
+}
+
+- (void)setDVDEndpoint {
+    self.endpoint = @"http://api.rottentomatoes.com/api/public/v1.0/lists/dvds/new_releases.json";
 }
 
 - (void)loadMovieList {
@@ -71,7 +92,7 @@
                             };
     
     AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-    [manager GET:@"http://api.rottentomatoes.com/api/public/v1.0/lists/movies/box_office.json" parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
+    [manager GET:self.endpoint parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
         //NSLog(@"JSON: %@", responseObject);
         self.movies = responseObject[@"movies"];
         [self.moviesTableView reloadData];
@@ -102,6 +123,21 @@
     // Pass the selected object to the new view controller.
 }
 */
+
+- (void)tabBar:(UITabBar *)tabBar didSelectItem:(UITabBarItem *)item {
+    if (self.previouslySelectedBarItem == item) {
+        NSLog(@"Same");
+        return;
+    }
+    self.previouslySelectedBarItem = item;
+    if (item == self.boxOfficeBarItem) {
+        [self setBoxOfficEndpoint];
+    } else {
+        [self setDVDEndpoint];
+    }
+    [SVProgressHUD showWithStatus:@"Loading movie list"];
+    [self loadMovieList];
+}
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     return [self.movies count];
@@ -140,5 +176,6 @@
     // Push the deatail view
     [[self navigationController] pushViewController:movieDetailView animated:YES];
 }
+
 
 @end
