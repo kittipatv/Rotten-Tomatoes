@@ -15,12 +15,13 @@
 #import "MovieTableViewCell.h"
 #import "MovieDetailViewController.h"
 
-@interface MoviesViewController () <UITableViewDelegate, UITableViewDataSource, UITabBarDelegate>
+@interface MoviesViewController () <UITableViewDelegate, UITableViewDataSource, UITabBarDelegate, UISearchBarDelegate>
 
 @property (weak, nonatomic) IBOutlet UITabBar *tabBar;
 @property (weak, nonatomic) IBOutlet UITabBarItem *boxOfficeBarItem;
 @property (weak, nonatomic) IBOutlet UITabBarItem *dvdBarItem;
 @property (weak, nonatomic) IBOutlet UITableView *moviesTableView;
+@property (weak, nonatomic) IBOutlet UISearchBar *searchBar;
 
 @property (weak, nonatomic) UITabBarItem *previouslySelectedBarItem;
 
@@ -76,6 +77,10 @@
     
     self.previouslySelectedBarItem = self.boxOfficeBarItem;
     self.tabBar.selectedItem = self.boxOfficeBarItem;
+    
+    self.moviesTableView.sectionHeaderHeight = 0;
+    
+    self.searchBar.delegate = self;
 }
 
 - (void)setBoxOfficEndpoint {
@@ -87,9 +92,15 @@
 }
 
 - (void)loadMovieList {
-    NSDictionary *params = @{
-                            @"apikey":@"3hc6zpaxvqrwe58evfuub7xy"
-                            };
+    [self requestWithParams:nil];
+}
+
+- (void)requestWithParams:(NSDictionary *)paramsOrNil {
+    NSMutableDictionary *params = [[NSMutableDictionary alloc] initWithObjectsAndKeys:@"3hc6zpaxvqrwe58evfuub7xy", @"apikey", nil];
+    if (paramsOrNil) {
+        [params addEntriesFromDictionary:paramsOrNil];
+    }
+    
     
     AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
     [manager GET:self.endpoint parameters:params success:^(AFHTTPRequestOperation *operation, id responseObject) {
@@ -106,7 +117,11 @@
 }
 
 - (void)onRefresh {
-    [self loadMovieList];
+    if (self.searchBar.text.length == 0) {
+        [self loadMovieList];
+    } else {
+        [self performSearch];
+    }
 }
 
 - (void)didReceiveMemoryWarning {
@@ -125,12 +140,17 @@
 */
 
 - (void)tabBar:(UITabBar *)tabBar didSelectItem:(UITabBarItem *)item {
+    self.searchBar.text = @"";
     if (self.previouslySelectedBarItem == item) {
         NSLog(@"Same");
         return;
     }
     self.previouslySelectedBarItem = item;
-    if (item == self.boxOfficeBarItem) {
+    [self loadListForSelectedTab];
+}
+
+- (void)loadListForSelectedTab {
+    if (self.previouslySelectedBarItem == self.boxOfficeBarItem) {
         [self setBoxOfficEndpoint];
     } else {
         [self setDVDEndpoint];
@@ -175,6 +195,28 @@
     
     // Push the deatail view
     [[self navigationController] pushViewController:movieDetailView animated:YES];
+}
+
+- (void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText {
+    if (searchText.length == 0) {
+        [self loadListForSelectedTab];
+        return;
+    }
+    [SVProgressHUD showWithStatus:@"Searching"];
+    [self performSearch];
+}
+
+    
+- (void)performSearch {
+    self.endpoint = @"http://api.rottentomatoes.com/api/public/v1.0/movies.json";
+    [self requestWithParams:@{
+                              @"q":self.searchBar.text,
+                              @"page_limit":@"20"
+                              }];
+}
+
+- (void)searchBarCancelButtonClicked:(UISearchBar *)searchBar {
+    [self loadListForSelectedTab];
 }
 
 

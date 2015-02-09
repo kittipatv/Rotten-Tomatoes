@@ -22,7 +22,7 @@ Time spent: `<Number of hours spent>` 1.5 hours 12:30
 - [ ] Customize the highlight and selection effect of the cell.
 - [x] Customize the navigation bar.
 - [x] Add a tab bar for Box Office and DVD.
-- [ ] Add a search bar: pretty simple implementation of searching against the existing table view data.
+- [x] Add a search bar: pretty simple implementation of searching against the existing table view data.
 
 ### Walkthrough
 ![Video Walkthrough](http://i.imgur.com/9d4fXIm.gif)
